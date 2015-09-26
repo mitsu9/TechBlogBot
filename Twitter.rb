@@ -3,8 +3,10 @@ require "active_record"
 require "twitter"
 require "yaml"
 
-CONFIG = YAML.load_file('config.yml')
-FEED = YAML.load_file('feed.yml')
+ROOTDIR = File.expand_path(File.dirname(__FILE__)) + "/"
+
+CONFIG = YAML.load_file(ROOTDIR + '/config.yml')
+FEED = YAML.load_file(ROOTDIR + '/feed.yml')
 
 # configure DB
 ActiveRecord::Base.establish_connection(CONFIG["db"]["production"])
@@ -23,11 +25,11 @@ end
 # get feed => if new, save and post
 for url in FEED["url"] do
     feed = Feedjira::Feed.fetch_and_parse url
-     puts feed.title
+    # puts feed.title
     for entry in feed.entries do
         if Entry.exists?(title: entry.title, url: entry.url, published: entry.published)
             # do nothing
-            puts "already save to DB"
+            # puts "already save to DB"
         else
             # save to DB
             newentry = Entry.new
@@ -39,7 +41,7 @@ for url in FEED["url"] do
             # tweet about new entry
             tweet = "[" + feed.title + "] " + newentry.title + " / " + newentry.url
             if tweet.length < 140
-                puts tweet
+                puts "Posted Tweet: " + tweet
                 client.update(tweet)
             else
                 puts "long tweet"
